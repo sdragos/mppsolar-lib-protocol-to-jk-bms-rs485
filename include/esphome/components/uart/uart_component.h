@@ -12,19 +12,14 @@ namespace esphome
 
   namespace uart
   {
-
-    class InternalGPIOPin
+    enum UARTParityOptions
     {
-    public:
-      InternalGPIOPin(uint8_t pin, bool is_inverted) : _pin(pin), _is_inverted(is_inverted) {}
-
-      uint8_t get_pin() const { return this->_pin; }
-      bool is_inverted() const { return this->_is_inverted; }
-
-    private:
-      uint8_t _pin;
-      bool _is_inverted;
+      UART_CONFIG_PARITY_NONE,
+      UART_CONFIG_PARITY_EVEN,
+      UART_CONFIG_PARITY_ODD,
     };
+
+    const LogString *parity_to_str(UARTParityOptions parity);
 
     class UARTComponent
     {

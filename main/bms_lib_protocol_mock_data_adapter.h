@@ -1,6 +1,6 @@
 #pragma once
 
-#include "BMSLibProtocolDataAdapter.h"
+#include "bms_lib_protocol_data_adapter.h"
 
 namespace sdragos
 {

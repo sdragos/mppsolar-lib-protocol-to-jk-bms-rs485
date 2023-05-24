@@ -7,11 +7,11 @@
 #include "nvs_flash.h"
 #include "freertos/queue.h"
 #include "sdkconfig.h"
-#include "uart_idf.h"
-#include "uart_device.h"
-#include "BMSLibProtocolUARTHandler.h"
-#include "BMSLibProtocolDataAdapter.h"
-#include "BMSLibProtocolMockDataAdapter.h"
+#include "esphome/components/uart/uart_component_esp_idf.h"
+#include "esphome/components/uart/uart.h"
+#include "bms_lib_protocol_uart_handler.h"
+#include "bms_lib_protocol_data_adapter.h"
+#include "bms_lib_protocol_mock_data_adapter.h"
 
 /**
  * This is a example which BMS_LIBs any data it receives on UART back to the sender using RS485 interface in half duplex mode.

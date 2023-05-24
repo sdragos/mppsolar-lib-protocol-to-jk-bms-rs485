@@ -1,9 +1,9 @@
 #pragma once
 
-#include "BMSLibProtocolDataAdapter.h"
+#include "bms_lib_protocol_data_adapter.h"
 #include <map>
-#include "uart_idf.h"
-#include "uart_device.h"
+#include "esphome/components/uart/uart_component_esp_idf.h"
+#include "esphome/components/uart/uart.h"
 
 #define DEVICE_QUERY_FRAME_SIZE 8
 
@@ -15,15 +15,17 @@ namespace sdragos
     namespace mppsolar
     {
 
-        class BMSLibProtocolUARTHandler : public esphome::uart::UARTDevice{
+        class BMSLibProtocolUARTHandler : public esphome::uart::UARTDevice, public Component{
         public:
             BMSLibProtocolUARTHandler(UARTComponent *parent);
             // This method is required because EspHome gets confused if I try to
             // pass it to the constructor alongside the UARTComponent*. It allows
             // for a delayed setup too, which is fine.
             void setDataAdapter(BMSLibProtocolDataAdapter *dataAdapter);
-            void setup();
-            void loop();
+            void setup() override;
+            void loop() override;
+            void dump_config() override { };
+            float get_setup_priority() const override { return 0.0f; };
 
         private:
             // Hard-coded Slave ID. The implementation will need to be changed if you're planning to use

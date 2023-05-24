@@ -1,3 +1,6 @@
+//This file contains code taken from https://github.com/esphome/esphome/blob/dev/esphome/components/uart/uart.h
+//It is likely not a 1 to 1 copy as some things may have been modified so that it works without other implementations from ESPHome
+
 #pragma once
 
 #include "uart_component.h"

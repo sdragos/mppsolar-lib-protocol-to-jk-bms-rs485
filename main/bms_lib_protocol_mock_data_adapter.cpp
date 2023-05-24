@@ -1,4 +1,4 @@
-#include "BMSLibProtocolMockDataAdapter.h"
+#include "bms_lib_protocol_mock_data_adapter.h"
 
 namespace sdragos
 {

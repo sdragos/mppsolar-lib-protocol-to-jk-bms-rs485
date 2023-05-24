@@ -4,6 +4,7 @@
 #pragma once
 
 #include <driver/uart.h>
+#include "esphome/core/component.h"
 #include "uart_component.h"
 
 namespace esphome
@@ -11,11 +12,14 @@ namespace esphome
   namespace uart
   {
 
-    class IDFUARTComponent : public UARTComponent
+    class IDFUARTComponent : public UARTComponent, public Component
     {
     public:
-      void setup();
-      void dump_config();
+      void loop() override { };
+
+      void setup() override;
+      void dump_config() override;
+      float get_setup_priority() const override { return esphome::setup_priority::BUS; }
 
       void write_array(const uint8_t *data, size_t len) override;
 

@@ -1,7 +1,7 @@
 //This file contains code taken from https://github.com/esphome/esphome/blob/dev/esphome/components/uart/uart_component_esp_idf.cpp
 //It is likely not a 1 to 1 copy as some things may have been modified so that it works without other implementations from ESPHome
 
-#include "uart_idf.h"
+#include "uart_component_esp_idf.h"
 #include "freertos/semphr.h"
 
 namespace esphome

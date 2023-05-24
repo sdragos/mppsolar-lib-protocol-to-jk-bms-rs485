@@ -1,4 +1,4 @@
-#include "BMSLibProtocolUARTHandler.h"
+#include "bms_lib_protocol_uart_handler.h"
 
 using namespace esphome;
 using namespace uart;

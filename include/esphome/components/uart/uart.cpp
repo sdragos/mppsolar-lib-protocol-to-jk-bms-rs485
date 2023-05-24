@@ -1,4 +1,7 @@
-#include "uart_device.h"
+//This file contains code taken from https://github.com/esphome/esphome/blob/dev/esphome/components/uart/uart.cpp
+//It is likely not a 1 to 1 copy as some things may have been modified so that it works without other implementations from ESPHome
+
+#include "uart.h"
 
 namespace esphome {
 namespace uart {
