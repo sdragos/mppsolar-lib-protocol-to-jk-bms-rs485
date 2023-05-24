@@ -181,7 +181,7 @@ namespace sdragos
             uint16_t receivedCrc = (_rxBuffer[7] << 8) | _rxBuffer[6];
             if (calculateModbusCrc16(_rxBuffer, 6) != receivedCrc)
             {
-                ESP_LOGI("BMSLibProtocolUARTHandler", "%s", "Invalid CRC.");
+                ESP_LOGE("BMSLibProtocolUARTHandler", "%s", "Invalid CRC.");
                 sendInvalidCrcReply();
                 return;
             }
@@ -196,7 +196,7 @@ namespace sdragos
             }
             else
             {
-                ESP_LOGI("BMSLibProtocolUARTHandler", "Unknown command %d", _rxBuffer[1]);
+                ESP_LOGE("BMSLibProtocolUARTHandler", "Unknown command %d", _rxBuffer[1]);
             }
         }
 
@@ -205,13 +205,13 @@ namespace sdragos
             // Verify the command length and CRC
             if (len < 8)
             {
-                ESP_LOGI("BMSLibProtocolUARTHandler", "%s", "Invalid command length. Skipping frame.");
+                ESP_LOGE("BMSLibProtocolUARTHandler", "%s", "Invalid command length. Skipping frame.");
                 return;
             }
             uint16_t receivedCrc = (pData[len - 1] << 8) | pData[len - 2];
             if (calculateModbusCrc16(pData, len - 2) != receivedCrc)
             {
-                ESP_LOGI("BMSLibProtocolUARTHandler", "%s", "Invalid CRC.");
+                ESP_LOGE("BMSLibProtocolUARTHandler", "%s", "Invalid CRC.");
                 sendInvalidCrcReply();
                 return;
             }
@@ -247,7 +247,7 @@ namespace sdragos
                 }
                 else
                 {
-                    ESP_LOGI("BMSLibProtocolUARTHandler", "%s", "Unsupported address received. Skipping frame.");
+                    ESP_LOGE("BMSLibProtocolUARTHandler", "%s", "Unsupported address received. Skipping frame.");
                     return; // Do not send a reply for unsupported addresses
                 }
             }
@@ -273,7 +273,7 @@ namespace sdragos
         {
             if (sizeof(twoBytes) != 4)
             {
-                ESP_LOGI("BMSLibProtocolUARTHandler", "Got unexpected payload size in send2BytesPayloadReply. Stopping. Size: %d", sizeof(twoBytes));
+                ESP_LOGE("BMSLibProtocolUARTHandler", "Got unexpected payload size in send2BytesPayloadReply. Stopping. Size: %d", sizeof(twoBytes));
                 return;
             }
 
@@ -306,7 +306,7 @@ namespace sdragos
         {
             if (sizeof(fourBytes) != 4)
             {
-                ESP_LOGI("BMSLibProtocolUARTHandler", "Got unexpected payload size in send4BytesPayloadReply. Stopping. Size: %d", sizeof(fourBytes));
+                ESP_LOGE("BMSLibProtocolUARTHandler", "Got unexpected payload size in send4BytesPayloadReply. Stopping. Size: %d", sizeof(fourBytes));
                 return;
             }
 
