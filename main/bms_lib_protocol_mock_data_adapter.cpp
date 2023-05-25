@@ -4,6 +4,11 @@ namespace sdragos
 {
     namespace mppsolar
     {
+        bool BMSLibProtocolMockDataAdapter::hasData()
+        {
+            return true;
+        }
+
         uint8_t * BMSLibProtocolMockDataAdapter::getBMSFirmwareVersion()
         {
             // returns 4 bytes

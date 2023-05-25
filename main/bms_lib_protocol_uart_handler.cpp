@@ -359,7 +359,7 @@ namespace sdragos
         { // 0x0003, expected 4 bytes reply
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForBMSFirmwareVersion");
 
-            if (this->_dataAdapter != nullptr)
+            if (this->_dataAdapter != nullptr && this->_dataAdapter->hasData())
             {
                 auto result = this->_dataAdapter->getBMSFirmwareVersion();
                 send4BytesPayloadReply(result);
@@ -369,7 +369,7 @@ namespace sdragos
         void BMSLibProtocolUARTHandler::replyForBMSHardwareVersion()
         { // 0x0004, expected 4 bytes reply
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForBMSHardwareVersion");
-            if (this->_dataAdapter != nullptr)
+            if (this->_dataAdapter != nullptr && this->_dataAdapter->hasData())
             {
                 auto result = this->_dataAdapter->getBMSHardwareVersion();
                 send4BytesPayloadReply(result);
@@ -379,7 +379,7 @@ namespace sdragos
         void BMSLibProtocolUARTHandler::replyForNumberOfCellsRequest()
         { // 0x0010, expected 2 bytes reply (integer, count of cells)
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForNumberOfCellsRequest");
-            if (this->_dataAdapter != nullptr)
+            if (this->_dataAdapter != nullptr && this->_dataAdapter->hasData())
             {
                 auto result = this->_dataAdapter->getNumberOfCells();
                 send2BytesPayloadReply(result);
@@ -389,7 +389,7 @@ namespace sdragos
         void BMSLibProtocolUARTHandler::replyForCellVoltageRequest(uint16_t dataAddress)
         { // 0x0011 - 0x0024, expected 2 bytes reply (integer, count of 0.1V)
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForCellVoltageRequest");
-            if (this->_dataAdapter != nullptr)
+            if (this->_dataAdapter != nullptr && this->_dataAdapter->hasData())
             {
                 uint16_t cellLowOrder = (dataAddress & 0x00FF) - 0x0010;
                 uint16_t cellHighOrder = (dataAddress >> 8) & 0x00FF;
@@ -405,7 +405,7 @@ namespace sdragos
         void BMSLibProtocolUARTHandler::replyForNumberOfTemperatureSensors()
         { // 0x0025, expected 2 bytes reply (integer, count of sensors)
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForNumberOfTemperatureSensors");
-            if (this->_dataAdapter != nullptr)
+            if (this->_dataAdapter != nullptr && this->_dataAdapter->hasData())
             {
                 auto result = this->_dataAdapter->getNumberOfTemperatureSensors();
                 send2BytesPayloadReply(result);
@@ -415,7 +415,7 @@ namespace sdragos
         void BMSLibProtocolUARTHandler::replyForTemperatureRequest(uint16_t dataAddress)
         { // 0x0026 - 0x002F -- expected 2 bytes reply (number of 0.1K)
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForTemperatureRequest");
-            if (this->_dataAdapter != nullptr)
+            if (this->_dataAdapter != nullptr && this->_dataAdapter->hasData())
             {
                 uint16_t tempSensorLowOrder = (dataAddress & 0x00FF) - 0x0025;
                 uint16_t tempSensorHighOrder = (dataAddress >> 8) & 0x00FF;
@@ -431,7 +431,7 @@ namespace sdragos
         void BMSLibProtocolUARTHandler::replyForModuleChargeCurrentRequest()
         { // 0x0030 -- expected 2 bytes reply (number of 0.1A)
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForModuleChargeCurrentRequest");
-            if (this->_dataAdapter != nullptr)
+            if (this->_dataAdapter != nullptr && this->_dataAdapter->hasData())
             {
                 auto result = this->_dataAdapter->getModuleChargeCurrent();
                 send2BytesPayloadReply(result);
@@ -441,7 +441,7 @@ namespace sdragos
         void BMSLibProtocolUARTHandler::replyForModuleDischargeCurrentRequest()
         { // 0x0031 -- expected 2 bytes reply (number of 0.1A)
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForModuleDischargeCurrentRequest");
-            if (this->_dataAdapter != nullptr)
+            if (this->_dataAdapter != nullptr && this->_dataAdapter->hasData())
             {
                 auto result = this->_dataAdapter->getModuleDischargeCurrent();
                 send2BytesPayloadReply(result);
@@ -451,7 +451,7 @@ namespace sdragos
         void BMSLibProtocolUARTHandler::replyForModuleVoltageRequest()
         { // 0x0032 -- expected 2 bytes reply (number of 0.1V)
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForModuleVoltageRequest");
-            if (this->_dataAdapter != nullptr)
+            if (this->_dataAdapter != nullptr && this->_dataAdapter->hasData())
             {
                 auto result = this->_dataAdapter->getModuleVoltage();
                 send2BytesPayloadReply(result);
@@ -461,7 +461,7 @@ namespace sdragos
         void BMSLibProtocolUARTHandler::replyForStateOfChargeRequest()
         { // 0x0033 required -- expected 2 bytes reply (percentage)
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForStateOfChargeRequest");
-            if (this->_dataAdapter != nullptr)
+            if (this->_dataAdapter != nullptr && this->_dataAdapter->hasData())
             {
                 auto result = this->_dataAdapter->getStateOfCharge();
                 send2BytesPayloadReply(result);
@@ -471,7 +471,7 @@ namespace sdragos
         void BMSLibProtocolUARTHandler::replyForModuleTotalCapacityRequest()
         { // 0x0034 -- expected 4 bytes reply (number of mAh)
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForModuleTotalCapacityRequest");
-            if (this->_dataAdapter != nullptr)
+            if (this->_dataAdapter != nullptr && this->_dataAdapter->hasData())
             {
                 auto result = this->_dataAdapter->getModuleTotalCapacity();
                 send4BytesPayloadReply(result);
@@ -481,7 +481,7 @@ namespace sdragos
         void BMSLibProtocolUARTHandler::replyForNumberOfCellsWarningInfoRequest()
         { // 0x0040
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForNumberOfCellsWarningInfoRequest");
-            if (this->_dataAdapter != nullptr)
+            if (this->_dataAdapter != nullptr && this->_dataAdapter->hasData())
             {
                 auto result = this->_dataAdapter->getNumberOfCellsForWarningInfo();
                 send2BytesPayloadReply(result);
@@ -491,7 +491,7 @@ namespace sdragos
         void BMSLibProtocolUARTHandler::replyForCellPairVoltageStateRequest(uint16_t dataAddress)
         { // 0x0041 - 0x004A
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForCellPairVoltageStateRequest");
-            if (this->_dataAdapter != nullptr)
+            if (this->_dataAdapter != nullptr && this->_dataAdapter->hasData())
             {
                 uint16_t tempSensorLowOrder = ((dataAddress & 0x00FF) - 0x0040) * 2 - 1;
                 uint16_t tempSensorHighOrder = (dataAddress >> 8) & 0x00FF;
@@ -507,7 +507,7 @@ namespace sdragos
         void BMSLibProtocolUARTHandler::replyForNumberOfTemperatureSensorsWarningInfoRequest()
         { // 0x0050
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForNumberOfTemperatureSensorsWarningInfoRequest");
-            if (this->_dataAdapter != nullptr)
+            if (this->_dataAdapter != nullptr && this->_dataAdapter->hasData())
             {
                 auto result = this->_dataAdapter->getNumberOfTemperatureSensorsForWarningInfo();
                 send2BytesPayloadReply(result);
@@ -517,7 +517,7 @@ namespace sdragos
         void BMSLibProtocolUARTHandler::replyForTemperatureSensorPairStateRequest(uint16_t dataAddress)
         { // 0x0051 - 0x0055
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForTemperatureSensorPairStateRequest");
-            if (this->_dataAdapter != nullptr)
+            if (this->_dataAdapter != nullptr && this->_dataAdapter->hasData())
             {
                 uint16_t tempSensorLowOrder = ((dataAddress & 0x00FF) - 0x0050) * 2 - 1;
                 uint16_t tempSensorHighOrder = (dataAddress >> 8) & 0x00FF;
@@ -533,7 +533,7 @@ namespace sdragos
         void BMSLibProtocolUARTHandler::replyForModuleChargeVoltageStateRequest()
         { // 0x0060
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForModuleChargeVoltageStateRequest");
-            if (this->_dataAdapter != nullptr)
+            if (this->_dataAdapter != nullptr && this->_dataAdapter->hasData())
             {
                 auto result = this->_dataAdapter->getModuleChargeVoltageState();
                 send2BytesPayloadReply(result);
@@ -543,7 +543,7 @@ namespace sdragos
         void BMSLibProtocolUARTHandler::replyForModuleDischargeVoltageStateRequest()
         { // 0x0061
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForModuleDischargeVoltageStateRequest");
-            if (this->_dataAdapter != nullptr)
+            if (this->_dataAdapter != nullptr && this->_dataAdapter->hasData())
             {
                 auto result = this->_dataAdapter->getModuleDischargeVoltageState();
                 send2BytesPayloadReply(result);
@@ -553,7 +553,7 @@ namespace sdragos
         void BMSLibProtocolUARTHandler::replyForCellChargeVoltageStateRequest()
         { // 0x0062
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForCellChargeVoltageStateRequest");
-            if (this->_dataAdapter != nullptr)
+            if (this->_dataAdapter != nullptr && this->_dataAdapter->hasData())
             {
                 auto result = this->_dataAdapter->getCellChargeVoltageState();
                 send2BytesPayloadReply(result);
@@ -563,7 +563,7 @@ namespace sdragos
         void BMSLibProtocolUARTHandler::replyForCellDischargeVoltageStateRequest()
         { // 0x0063
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForCellDischargeVoltageStateRequest");
-            if (this->_dataAdapter != nullptr)
+            if (this->_dataAdapter != nullptr && this->_dataAdapter->hasData())
             {
                 auto result = this->_dataAdapter->getCellDischargeVoltageState();
                 send2BytesPayloadReply(result);
@@ -573,7 +573,7 @@ namespace sdragos
         void BMSLibProtocolUARTHandler::replyForModuleChargeCurrentStateRequest()
         { // 0x0064
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForModuleChargeCurrentStateRequest");
-            if (this->_dataAdapter != nullptr)
+            if (this->_dataAdapter != nullptr && this->_dataAdapter->hasData())
             {
                 auto result = this->_dataAdapter->getModuleChargeCurrentState();
                 send2BytesPayloadReply(result);
@@ -583,7 +583,7 @@ namespace sdragos
         void BMSLibProtocolUARTHandler::replyForModuleDischargeCurrentStateRequest()
         { // 0x0065
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForModuleDischargeCurrentStateRequest");
-            if (this->_dataAdapter != nullptr)
+            if (this->_dataAdapter != nullptr && this->_dataAdapter->hasData())
             {
                 auto result = this->_dataAdapter->getModuleDischargeCurrentState();
                 send2BytesPayloadReply(result);
@@ -593,7 +593,7 @@ namespace sdragos
         void BMSLibProtocolUARTHandler::replyForModuleChargeTemperatureStateRequest()
         { // 0x0066
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForModuleChargeTemperatureStateRequest");
-            if (this->_dataAdapter != nullptr)
+            if (this->_dataAdapter != nullptr && this->_dataAdapter->hasData())
             {
                 auto result = this->_dataAdapter->getModuleChargeTemperatureState();
                 send2BytesPayloadReply(result);
@@ -603,7 +603,7 @@ namespace sdragos
         void BMSLibProtocolUARTHandler::replyForModuleDischargeTemperatureStateRequest()
         { // 0x0067
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForModuleDischargeTemperatureStateRequest");
-            if (this->_dataAdapter != nullptr)
+            if (this->_dataAdapter != nullptr && this->_dataAdapter->hasData())
             {
                 auto result = this->_dataAdapter->getModuleDischargeTemperatureState();
                 send2BytesPayloadReply(result);
@@ -613,7 +613,7 @@ namespace sdragos
         void BMSLibProtocolUARTHandler::replyForCellChargeTemperatureStateRequest()
         { // 0x0068
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForCellChargeTemperatureStateRequest");
-            if (this->_dataAdapter != nullptr)
+            if (this->_dataAdapter != nullptr && this->_dataAdapter->hasData())
             {
                 auto result = this->_dataAdapter->getCellChargeTemperatureState();
                 send2BytesPayloadReply(result);
@@ -623,7 +623,7 @@ namespace sdragos
         void BMSLibProtocolUARTHandler::replyForCellDischargeTemperatureStateRequest()
         { // 0x0069
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForCellDischargeTemperatureStateRequest");
-            if (this->_dataAdapter != nullptr)
+            if (this->_dataAdapter != nullptr && this->_dataAdapter->hasData())
             {
                 auto result = this->_dataAdapter->getCellDischargeTemperatureState();
                 send2BytesPayloadReply(result);
@@ -633,7 +633,7 @@ namespace sdragos
         void BMSLibProtocolUARTHandler::replyForChargeVoltageLimitRequest()
         { // 0x0070 required
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForChargeVoltageLimitRequest");
-            if (this->_dataAdapter != nullptr)
+            if (this->_dataAdapter != nullptr && this->_dataAdapter->hasData())
             {
                 auto result = this->_dataAdapter->getChargeVoltageLimit();
                 send2BytesPayloadReply(result);
@@ -643,7 +643,7 @@ namespace sdragos
         void BMSLibProtocolUARTHandler::replyForDischargeVoltageLimitRequest()
         { // 0x0071 required
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForDischargeVoltageLimitRequest");
-            if (this->_dataAdapter != nullptr)
+            if (this->_dataAdapter != nullptr && this->_dataAdapter->hasData())
             {
                 auto result = this->_dataAdapter->getDischargeVoltageLimit();
                 send2BytesPayloadReply(result);
@@ -653,7 +653,7 @@ namespace sdragos
         void BMSLibProtocolUARTHandler::replyForChargeCurrentLimitRequest()
         { // 0x0072 required
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForChargeCurrentLimitRequest");
-            if (this->_dataAdapter != nullptr)
+            if (this->_dataAdapter != nullptr && this->_dataAdapter->hasData())
             {
                 auto result = this->_dataAdapter->getChargeCurrentLimit();
                 send2BytesPayloadReply(result);
@@ -663,7 +663,7 @@ namespace sdragos
         void BMSLibProtocolUARTHandler::replyForDischargeCurrentLimitRequest()
         { // 0x0073 required
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForDischargeCurrentLimitRequest");
-            if (this->_dataAdapter != nullptr)
+            if (this->_dataAdapter != nullptr && this->_dataAdapter->hasData())
             {
                 auto result = this->_dataAdapter->getDischargeCurrentLimit();
                 send2BytesPayloadReply(result);
@@ -673,7 +673,7 @@ namespace sdragos
         void BMSLibProtocolUARTHandler::replyForChargeDischargeStatusRequest()
         { // 0x0074 required
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForChargeDischargeStatusRequest");
-            if (this->_dataAdapter != nullptr)
+            if (this->_dataAdapter != nullptr && this->_dataAdapter->hasData())
             {
                 auto result = this->_dataAdapter->getChargeDischargeStatus();
                 send2BytesPayloadReply(result);
@@ -683,7 +683,7 @@ namespace sdragos
         void BMSLibProtocolUARTHandler::replyForRuntimeToEmptyRequest()
         { // 0x0075
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForRuntimeToEmptyRequest");
-            if (this->_dataAdapter != nullptr)
+            if (this->_dataAdapter != nullptr && this->_dataAdapter->hasData())
             {
                 auto result = this->_dataAdapter->getRuntimeToEmptySeconds();
                 send2BytesPayloadReply(result);
