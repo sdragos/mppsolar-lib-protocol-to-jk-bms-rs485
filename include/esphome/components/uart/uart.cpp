@@ -23,8 +23,7 @@ void UARTDevice::check_uart_settings(uint32_t baud_rate, uint8_t stop_bits, UART
              this->parent_->get_data_bits());
   }
   if (this->parent_->get_parity() != parity) {
-    ESP_LOGE(TAG, "  Invalid parity: Integration requested parity %s but you have %s!",
-             LOG_STR_ARG(parity_to_str(parity)), LOG_STR_ARG(parity_to_str(this->parent_->get_parity())));
+    ESP_LOGE(TAG, "  Invalid parity: Integration requested parity %d but you have %d!", parity, this->parent_->get_parity());
   }
 }
 

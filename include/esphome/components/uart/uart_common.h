@@ -12,7 +12,7 @@
 #include <freertos/task.h>
 #include <hal/cpu_hal.h>
 #include <cmath>
-#include <esphome/core/log.h>
+#include "esphome/core/component.h"
 
 namespace esphome{
   namespace uart{

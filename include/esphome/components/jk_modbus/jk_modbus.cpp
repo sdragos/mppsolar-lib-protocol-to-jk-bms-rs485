@@ -1,7 +1,6 @@
 //This file contains code taken from https://github.com/syssi/esphome-jk-bms/blob/main/components/jk_modbus/jk_modbus.cpp
 
 #include "jk_modbus.h"
-#include "esphome/core/log.h"
 
 namespace esphome {
 namespace jk_modbus {
@@ -9,7 +8,7 @@ namespace jk_modbus {
 static const char *const TAG = "jk_modbus";
 
 void JkModbus::loop() {
-  const uint32_t now = millis();
+  const uint32_t now = (uint32_t)(esp_timer_get_time() / 1000ULL);
   if (now - this->last_jk_modbus_byte_ > this->rx_timeout_) {
     this->rx_buffer_.clear();
     this->last_jk_modbus_byte_ = now;
@@ -96,8 +95,8 @@ bool JkModbus::parse_jk_modbus_byte_(uint8_t byte) {
 }
 
 void JkModbus::dump_config() {
-  ESP_LOGCONFIG(TAG, "JkModbus:");
-  ESP_LOGCONFIG(TAG, "  RX timeout: %d ms", this->rx_timeout_);
+  ESP_LOGI(TAG, "JkModbus:");
+  ESP_LOGI(TAG, "  RX timeout: %d ms", this->rx_timeout_);
 }
 float JkModbus::get_setup_priority() const {
   // After UART bus

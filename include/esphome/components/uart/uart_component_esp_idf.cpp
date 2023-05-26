@@ -57,7 +57,7 @@ namespace esphome
 
     void IDFUARTComponent::setup()
     {
-      static uint8_t next_uart_num = 0;
+      static uint8_t next_uart_num = 1;
       if (next_uart_num >= UART_NUM_MAX)
       {
         ESP_LOGW(TAG, "Maximum number of UART components created already.");
@@ -133,7 +133,7 @@ namespace esphome
       }
       ESP_LOGD(TAG, "  Baud Rate: %lu baud", this->baud_rate_);
       ESP_LOGD(TAG, "  Data Bits: %u", this->data_bits_);
-      ESP_LOGD(TAG, "  Parity: %s", LOG_STR_ARG(parity_to_str(this->parity_)));
+      ESP_LOGD(TAG, "  Parity: %d", this->parity_);
       ESP_LOGD(TAG, "  Stop bits: %u", this->stop_bits_);
     }
 

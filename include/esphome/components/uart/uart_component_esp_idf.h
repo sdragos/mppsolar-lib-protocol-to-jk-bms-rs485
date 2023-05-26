@@ -4,7 +4,6 @@
 #pragma once
 
 #include <driver/uart.h>
-#include "esphome/core/component.h"
 #include "uart_component.h"
 
 namespace esphome

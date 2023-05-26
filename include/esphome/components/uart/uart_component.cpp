@@ -10,20 +10,20 @@ namespace esphome
 
     static const char *const TAG = "UARTComponent";
 
-    const LogString *parity_to_str(UARTParityOptions parity)
-    {
-        switch (parity)
-        {
-        case UART_CONFIG_PARITY_NONE:
-            return LOG_STR("NONE");
-        case UART_CONFIG_PARITY_EVEN:
-            return LOG_STR("EVEN");
-        case UART_CONFIG_PARITY_ODD:
-            return LOG_STR("ODD");
-        default:
-            return LOG_STR("UNKNOWN");
-        }
-    }
+    // const LogString *parity_to_str(UARTParityOptions parity)
+    // {
+    //     switch (parity)
+    //     {
+    //     case UART_CONFIG_PARITY_NONE:
+    //         return LOG_STR("NONE");
+    //     case UART_CONFIG_PARITY_EVEN:
+    //         return LOG_STR("EVEN");
+    //     case UART_CONFIG_PARITY_ODD:
+    //         return LOG_STR("ODD");
+    //     default:
+    //         return LOG_STR("UNKNOWN");
+    //     }
+    // }
 
     bool UARTComponent::check_read_timeout_(size_t len)
     {

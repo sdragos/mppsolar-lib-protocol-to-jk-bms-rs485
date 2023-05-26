@@ -19,8 +19,6 @@ namespace esphome
       UART_CONFIG_PARITY_ODD,
     };
 
-    const LogString *parity_to_str(UARTParityOptions parity);
-
     class UARTComponent
     {
     public:
