@@ -41,7 +41,7 @@
 #define BUF_SIZE (256)
 
 // Read packet timeout
-#define BMS_LIB_TASK_STACK_SIZE (2048)
+#define BMS_LIB_TASK_STACK_SIZE (32768)
 #define BMS_LIB_TASK_PRIO (10)
 #define BMS_LIB_UART_PORT (CONFIG_BMS_LIB_UART_PORT_NUM)
 #define JK_UART_PORT (CONFIG_JK_UART_PORT_NUM)
@@ -110,7 +110,7 @@ namespace esphome
 
     bmsLibProtocolUARTHandler_ = new BMSLibProtocolUARTHandler(idf_uart_1);
 
-    auto mockDataAdapter = new BMSLibProtocolMockDataAdapter();
+    //auto mockDataAdapter = new BMSLibProtocolMockDataAdapter();
     bmsLibProtocolUARTHandler_->setDataAdapter(jkBms_);
 
     bmsLibProtocolUARTHandler_->setup();
@@ -121,10 +121,27 @@ namespace esphome
 
     ESP_LOGI(TAG, "UART start receive loop.\r\n");
 
+    TickType_t tickCount = xTaskGetTickCount();
+    TickType_t previousUpdateWasAtTickCount = 0;
+    TickType_t previousDumpConfigWasAtTickCount = 0;
+
+    TickType_t fiveSecondsTicks = 5000 * portTICK_PERIOD_MS;
+    TickType_t thirtySecondsTicks = 30000 * portTICK_PERIOD_MS;
+    jkBms_->update();
     while (true)
     {
       bmsLibProtocolUARTHandler_->loop();
-      vTaskDelay(20 / portTICK_PERIOD_MS);
+      //jkModbus_->loop();
+
+      tickCount = xTaskGetTickCount();
+      if ((tickCount - previousUpdateWasAtTickCount) >= fiveSecondsTicks)
+      {
+        //jkBms_->update();
+        ESP_LOGI(TAG, "Updating");
+        previousUpdateWasAtTickCount = tickCount;
+      }
+
+      vTaskDelay(10);
     }
 
     vTaskDelete(NULL);
@@ -162,22 +179,52 @@ namespace esphome
   extern "C" void app_main(void)
   {
     setup();
+
+    // Acts as a master, polls the JK BMS every 5 seconds for data so that it can be passed on the Lib protocol inverter on request.
+
+    ESP_LOGI(TAG, "UART start receive loop.\r\n");
+
+    TickType_t tickCount = xTaskGetTickCount();
+    TickType_t previousUpdateWasAtTickCount = 0;
+    TickType_t previousDumpConfigWasAtTickCount = 0;
+
+    TickType_t fiveSecondsTicks = 5000 / portTICK_PERIOD_MS;
+    TickType_t thirtySecondsTicks = 30000 / portTICK_PERIOD_MS;
+    jkBms_->update();
+    while (true)
+    {
+      bmsLibProtocolUARTHandler_->loop();
+      jkModbus_->loop();
+
+      tickCount = xTaskGetTickCount();
+      if ((tickCount - previousUpdateWasAtTickCount) >= fiveSecondsTicks)
+      {
+        jkBms_->update();
+        ESP_LOGI(TAG, "Updating");
+        previousUpdateWasAtTickCount = tickCount;
+      }
+
+      vTaskDelay(10);
+    }
+
+    vTaskDelete(NULL);
+
     // A uart read/write example without event queue;
-    auto uartLibProtocolSlaveTaskHandle = xTaskCreate(uart_lib_protocol_slave, "uart_lib_protocol_slave", BMS_LIB_TASK_STACK_SIZE, NULL, BMS_LIB_TASK_PRIO, NULL);
-    auto uartJkMasterTaskHandle = xTaskCreate(uart_jk_master, "uart_jk_master", BMS_LIB_TASK_STACK_SIZE, NULL, BMS_LIB_TASK_PRIO, NULL);
+    //auto uartLibProtocolSlaveTaskHandle = xTaskCreate(uart_lib_protocol_slave, "uart_lib_protocol_slave", BMS_LIB_TASK_STACK_SIZE, NULL, BMS_LIB_TASK_PRIO, NULL);
+    // auto uartJkMasterTaskHandle = xTaskCreate(uart_jk_master, "uart_jk_master", 8192, NULL, BMS_LIB_TASK_PRIO, NULL);
 
-    ESP_LOGI(TAG, "Tasks created.\r\n");
+    // ESP_LOGI(TAG, "Tasks created.\r\n");
 
-    if (uartLibProtocolSlaveTaskHandle != pdPASS)
-    {
-      ESP_LOGE(TAG, "uart_lib_protocol_slave task create failed");
-      return;
-    }
+    // if (uartLibProtocolSlaveTaskHandle != pdPASS)
+    // {
+    //   ESP_LOGE(TAG, "uart_lib_protocol_slave task create failed");
+    //   return;
+    // }
 
-    if (uartJkMasterTaskHandle != pdPASS)
-    {
-      ESP_LOGE(TAG, "uart_jk_master task create failed");
-      return;
-    }
+    // if (uartJkMasterTaskHandle != pdPASS)
+    // {
+    //   ESP_LOGE(TAG, "uart_jk_master task create failed");
+    //   return;
+    // }
   }
 }

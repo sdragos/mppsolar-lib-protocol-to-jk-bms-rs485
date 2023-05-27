@@ -84,6 +84,10 @@ class JkBms: public jk_modbus::JkModbusDevice, public sdragos::mppsolar::BMSLibP
   float total_voltage_sensor_;
 
   float current_sensor_;
+
+  float charging_current_sensor_;
+  float discharging_current_sensor_;
+
   float power_sensor_;
   float charging_power_sensor_;
   float discharging_power_sensor_;
@@ -91,7 +95,7 @@ class JkBms: public jk_modbus::JkModbusDevice, public sdragos::mppsolar::BMSLibP
   float capacity_remaining_sensor_;
   float capacity_remaining_derived_sensor_;
   
-  float temperature_sensors_sensor_;
+  uint8_t temperature_sensors_sensor_;
 
   float charging_cycles_sensor_;
   float total_charging_cycle_capacity_sensor_;
@@ -163,6 +167,10 @@ class JkBms: public jk_modbus::JkModbusDevice, public sdragos::mppsolar::BMSLibP
   struct Cell {
     float cell_voltage_sensor_;
   } cells_[24];
+
+  struct TemperatureSensor {
+    float temperature_sensor_;
+  } temperature_sensors_[4];
 
   bool enable_fake_traffic_;
   uint8_t no_response_count_{0};

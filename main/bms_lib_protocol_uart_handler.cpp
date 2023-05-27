@@ -1,3 +1,5 @@
+#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
+
 #include "bms_lib_protocol_uart_handler.h"
 
 using namespace esphome;
@@ -118,7 +120,7 @@ namespace sdragos
 
                :O - let's not blow up the house
             */
-            while (available())
+            while (this->available())
             {
                 uint8_t byteRead = read();
 

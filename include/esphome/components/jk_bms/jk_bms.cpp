@@ -1,9 +1,13 @@
+#define LOG_LOCAL_LEVEL ESP_LOG_INFO
+
+#define TAG "JK-BMS"
+
 #include "jk_bms.h"
 
 namespace esphome {
 namespace jk_bms {
 
-static const char *const TAG = "jk_bms";
+//static const char *const TAG = "jk_bms";
 
 static const uint8_t MAX_NO_RESPONSE_COUNT = 5;
 
@@ -123,12 +127,15 @@ void JkBms::on_status_data_(const std::vector<uint8_t> &data) {
   // 0x80 0x00 0x1D: Read power tube temperature                 29°C                      1.0 °C
   // --->  99 = 99°C, 100 = 100°C, 101 = -1°C, 140 = -40°C
   this->power_tube_temperature_sensor_ = get_temperature_(jk_get_16bit(offset + 3 * 0));
+  ESP_LOGI(TAG, "power_tube_temperature_sensor_ %f", this->power_tube_temperature_sensor_);
 
   // 0x81 0x00 0x1E: Read the temperature in the battery box     30°C                      1.0 °C
   this->temperature_sensor_1_sensor_ = get_temperature_(jk_get_16bit(offset + 3 * 1));
+  this->temperature_sensors_[0].temperature_sensor_ = this->temperature_sensor_1_sensor_;
 
   // 0x82 0x00 0x1C: Read battery temperature                    28°C                      1.0 °C
   this->temperature_sensor_2_sensor_ = get_temperature_(jk_get_16bit(offset + 3 * 2));
+  this->temperature_sensors_[1].temperature_sensor_ = this->temperature_sensor_2_sensor_;
 
   // 0x83 0x14 0xEF: Total battery voltage                       5359 * 0.01 = 53.59V      0.01 V
   float total_voltage = (float) jk_get_16bit(offset + 3 * 3) * 0.01f;
@@ -138,6 +145,8 @@ void JkBms::on_status_data_(const std::vector<uint8_t> &data) {
   // this->publish_state_(this->current_sensor_, get_current_(jk_get_16bit(offset + 3 * 4), 0x01) * 0.01f);
   float current = get_current_(jk_get_16bit(offset + 3 * 4), data[offset + 84 + 3 * 45]) * 0.01f;
   this->current_sensor_ = current;
+  this->charging_current_sensor_ = std::max(0.0f, current);
+  this->discharging_current_sensor_ = std::abs(std::min(0.0f, current));
 
   float power = total_voltage * current;
   this->power_sensor_ = power;
@@ -149,7 +158,8 @@ void JkBms::on_status_data_(const std::vector<uint8_t> &data) {
   this->capacity_remaining_sensor_ = (float) raw_battery_remaining_capacity;
 
   // 0x86 0x02: Number of battery temperature sensors             2                        1.0  count
-  this->temperature_sensors_sensor_ = (float) data[offset + 2 + 3 * 5];
+  this->temperature_sensors_sensor_ = data[offset + 2 + 3 * 5];
+  ESP_LOGI(TAG, "temperature_sensors_sensor_ = %d", this->temperature_sensors_sensor_);
 
   // 0x87 0x00 0x04: Number of battery cycles                     4                        1.0  count
   this->charging_cycles_sensor_ = (float) jk_get_16bit(offset + 4 + 3 * 5);
@@ -380,6 +390,7 @@ void JkBms::on_status_data_(const std::vector<uint8_t> &data) {
 }
 
 void JkBms::update() {
+  ESP_LOGI(TAG, "Updating.");
   this->track_online_status_();
   this->read_registers(FUNCTION_READ_ALL, ADDRESS_READ_ALL);
 
@@ -531,7 +542,7 @@ void JkBms::dump_config() {  // NOLINT(google-readability-function-size,readabil
   ESP_LOGI(TAG, "Discharging Power %f", this->discharging_power_sensor_);
   ESP_LOGI(TAG, "Capacity Remaining %f", this->capacity_remaining_sensor_);
   ESP_LOGI(TAG, "Capacity Remaining Derived %f", this->capacity_remaining_derived_sensor_);
-  ESP_LOGI(TAG, "Temperature Sensors %f", this->temperature_sensors_sensor_);
+  ESP_LOGI(TAG, "Temperature Sensors %d", this->temperature_sensors_sensor_);
   ESP_LOGI(TAG, "Charging Cycles %f", this->charging_cycles_sensor_);
   ESP_LOGI(TAG, "Total Charging Cycle Capacity %f", this->total_charging_cycle_capacity_sensor_);
   ESP_LOGI(TAG, "Battery Strings %f", this->battery_strings_sensor_);
@@ -588,43 +599,127 @@ void JkBms::dump_config() {  // NOLINT(google-readability-function-size,readabil
   ESP_LOGI(TAG, "Total Runtime Formatted %s", this->total_runtime_formatted_text_sensor_.c_str());
 }
 
+ uint8_t *NotImplemented2Bytes(){
+    auto reply = new uint8_t[2];
+    reply[0] = 0;
+    reply[1] = 0;
+    return reply;
+ }
+
+ uint8_t *NotImplemented4Bytes(){
+    auto reply = new uint8_t[4];
+    reply[0] = 0;
+    reply[1] = 0;
+    reply[2] = 0;
+    reply[3] = 0;
+    return reply;
+ }
+
   // Version information
   uint8_t *JkBms::getBMSFirmwareVersion() {
-    return nullptr;
+    return NotImplemented4Bytes();
   }
   uint8_t *JkBms::getBMSHardwareVersion() {
-    return nullptr;
+    return NotImplemented4Bytes();
   }
   // BMS general status
   uint8_t *JkBms::getNumberOfCells() {
     auto reply = new uint8_t[2];
     reply[0] = 0;
     reply[1] = cell_count_; // 8 cells
+    ESP_LOGI(TAG, "Sending number of cells: %d", cell_count_);
     return reply;
   }
   uint8_t *JkBms::getCellVoltageOrNull(size_t cellNumber) {
-    return nullptr;
+    auto reply = new uint8_t[2];
+    reply[0] = 0;
+    reply[1] = 0;
+    if (cellNumber < cell_count_){
+      ESP_LOGI(TAG, "Sending voltage for cellNumber %d: %f", cellNumber, cells_[cellNumber-1].cell_voltage_sensor_);
+      float cellVoltageAdjusted =cells_[cellNumber-1].cell_voltage_sensor_ * 10;
+      reply[1] =  static_cast<uint8_t>(cellVoltageAdjusted);
+    }
+      
+    return reply;
   }
   uint8_t *JkBms::getNumberOfTemperatureSensors() {
-    return nullptr;
+    auto reply = new uint8_t[2];
+    reply[0] = 0;
+    reply[1] = temperature_sensors_sensor_;
+    ESP_LOGI(TAG, "Sending number of temperature sensors: %d", cell_count_);
+    return reply;
   };
   uint8_t *JkBms::getTemperatureOfSensorOrNull(size_t temperatureSensorNumber) { 
-    return nullptr;
+    auto reply = new uint8_t[2];
+    reply[0] = 0;
+    reply[1] = 0;
+    if (temperatureSensorNumber < temperature_sensors_sensor_){
+      ESP_LOGI(TAG, "Sending temperature for sensorNumber %d: %f", temperatureSensorNumber, temperature_sensors_[temperatureSensorNumber-1].temperature_sensor_);
+      float temperatureAdjusted = (temperature_sensors_[temperatureSensorNumber-1].temperature_sensor_ + 273.15) * 10;
+      uint16_t tempKelvin =  static_cast<uint16_t>(temperatureAdjusted);
+
+      reply[0] = (tempKelvin >> 8) & 0xFF;
+      reply[1] = tempKelvin & 0xFF;
+    }
+      
+    return reply;
   };
   uint8_t *JkBms::getModuleChargeCurrent() { 
-    return nullptr;
+    auto reply = new uint8_t[2];
+
+    float chargingCurrent = this->charging_current_sensor_ * 10;
+    uint16_t chargingCurrentAdjusted = static_cast<uint16_t>(chargingCurrent);
+    reply[0] = (chargingCurrentAdjusted >> 8) & 0xFF;
+    reply[1] = chargingCurrentAdjusted & 0xFF;
+
+    ESP_LOGI(TAG, "Sending charging current: %f", chargingCurrent);
+    return reply;
   };
   uint8_t *JkBms::getModuleDischargeCurrent() { 
-    return nullptr;
+    auto reply = new uint8_t[2];
+
+    float dischargingCurrent = this->discharging_current_sensor_ * 10;
+    uint16_t dischargingCurrentAdjusted = static_cast<uint16_t>(dischargingCurrent);
+    reply[0] = (dischargingCurrentAdjusted >> 8) & 0xFF;
+    reply[1] = dischargingCurrentAdjusted & 0xFF;
+
+    ESP_LOGI(TAG, "Sending discharge current: %f", dischargingCurrent);
+    return reply;
   };
   uint8_t *JkBms::getModuleVoltage() { 
-    return nullptr;
+    auto reply = new uint8_t[2];
+
+    float totalVoltage = this->total_voltage_sensor_ * 10;
+    uint16_t totalVoltageAdjusted = static_cast<uint16_t>(totalVoltage);
+    reply[0] = (totalVoltageAdjusted >> 8) & 0xFF;
+    reply[1] = totalVoltageAdjusted & 0xFF;
+
+    ESP_LOGI(TAG, "Sending total voltage: %d", totalVoltageAdjusted);
+    return reply;
   };
   uint8_t *JkBms::getStateOfCharge() { 
-    return nullptr;
+    auto reply = new uint8_t[2];
+
+    float capacityRemaining = this->capacity_remaining_sensor_ * 10;
+    uint16_t capacityRemainingAdjusted = static_cast<uint16_t>(capacityRemaining);
+    reply[0] = (capacityRemainingAdjusted >> 8) & 0xFF;
+    reply[1] = capacityRemainingAdjusted & 0xFF;
+
+    ESP_LOGI(TAG, "Sending capacity remaining: %f", capacityRemaining);
+    return reply;
   };
   uint8_t *JkBms::getModuleTotalCapacity() { 
-    return nullptr;
+    auto reply = new uint8_t[4];
+
+    float totalCapacityMilliAhAdjustedFloat = this->total_battery_capacity_setting_sensor_ * 1000;
+    uint16_t totalCapacityMilliAhAdjusted = static_cast<uint16_t>(totalCapacityMilliAhAdjustedFloat);
+    reply[0] = (totalCapacityMilliAhAdjusted >> 24) & 0xFF;
+    reply[1] = (totalCapacityMilliAhAdjusted >> 16) & 0xFF;
+    reply[2] = (totalCapacityMilliAhAdjusted >> 8) & 0xFF;
+    reply[3] = totalCapacityMilliAhAdjusted & 0xFF;
+
+    ESP_LOGI(TAG, "Sending total cxapacity: %d", totalCapacityMilliAhAdjusted);
+    return reply;
   };
 
   // BMS warning information inquiry
@@ -634,46 +729,46 @@ void JkBms::dump_config() {  // NOLINT(google-readability-function-size,readabil
   //      0x02 - Above higher limit
   //      0xF0 - Other error
   uint8_t *JkBms::getNumberOfCellsForWarningInfo() { 
-    return nullptr;
+    return NotImplemented2Bytes();
   };
   uint8_t *JkBms::getCellPairVoltageState(size_t oddCellNumber) { 
-    return nullptr;
+    return NotImplemented2Bytes();
   };
   uint8_t *JkBms::getNumberOfTemperatureSensorsForWarningInfo() { 
-    return nullptr;
+    return NotImplemented2Bytes();
   };
   uint8_t *JkBms::getTemperatureSensorPairState(size_t oddTemperatureSensorNumber) { 
-    return nullptr;
+    return NotImplemented2Bytes();
   };
   uint8_t *JkBms::getModuleChargeVoltageState() { 
-    return nullptr;
+    return NotImplemented2Bytes();
   };
   uint8_t *JkBms::getModuleDischargeVoltageState() { 
-    return nullptr;
+    return NotImplemented2Bytes();
   };
   uint8_t *JkBms::getCellChargeVoltageState() { 
-    return nullptr;
+    return NotImplemented2Bytes();
   };
   uint8_t *JkBms::getCellDischargeVoltageState() { 
-    return nullptr;
+    return NotImplemented2Bytes();
   };
   uint8_t *JkBms::getModuleChargeCurrentState() { 
-    return nullptr;
+    return NotImplemented2Bytes();
   };
   uint8_t *JkBms::getModuleDischargeCurrentState() { 
-    return nullptr;
+    return NotImplemented2Bytes();
   };
   uint8_t *JkBms::getModuleChargeTemperatureState() { 
-    return nullptr;
+    return NotImplemented2Bytes();
   };
   uint8_t *JkBms::getModuleDischargeTemperatureState() { 
-    return nullptr;
+    return NotImplemented2Bytes();
   };
   uint8_t *JkBms::getCellChargeTemperatureState() { 
-    return nullptr;
+    return NotImplemented2Bytes();
   };
   uint8_t *JkBms::getCellDischargeTemperatureState() { 
-    return nullptr;
+    return NotImplemented2Bytes();
   };
 
   // BMS charge and discharge information inquiry
