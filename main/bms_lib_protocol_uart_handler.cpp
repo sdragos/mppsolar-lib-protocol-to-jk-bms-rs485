@@ -116,7 +116,7 @@ namespace sdragos
               Imagine what could happen if you send a reply frame containing max charging Amps to a
               request from the inverter that asks for the voltage that you haven't read yet.
 
-              Due to the above it is of paramount importance that we read everything that was in the UART buffer
+              Due to the above it is of paramount importance that we read everything that is in the UART buffer
               and only process when we get a full 8 bytes frame and there're no other incoming bytes to process.
 
               The code will check again before sending a reply if anything is available in the buffer and

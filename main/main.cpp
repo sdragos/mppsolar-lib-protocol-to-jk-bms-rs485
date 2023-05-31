@@ -2,7 +2,7 @@
 #define USE_ESP32
 #define LOG_LOCAL_LEVEL ESP_LOG_INFO
 
-#include <stdio.h>
+#include<stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include "freertos/FreeRTOS.h"
@@ -38,13 +38,14 @@
 #define BMS_LIB_UART_BAUD_RATE (CONFIG_BMS_LIB_UART_BAUD_RATE)
 #define JK_UART_BAUD_RATE (CONFIG_JK_UART_BAUD_RATE)
 
-#define BUF_SIZE (384)
+#define BMS_LIB_BUF_SIZE (384)
+#define JK_BUF_SIZE (2048)
 
 // Read packet timeout
 #define BMS_LIB_TASK_STACK_SIZE (32768)
 #define BMS_LIB_TASK_PRIO (10)
-#define BMS_LIB_UART_PORT (CONFIG_BMS_LIB_UART_PORT_NUM)
-#define JK_UART_PORT (CONFIG_JK_UART_PORT_NUM)
+#define BMS_LIB_IDF_UART_PORT (CONFIG_BMS_LIB_UART_PORT_NUM)
+#define JK_IDF_UART_PORT (CONFIG_JK_UART_PORT_NUM)
 
 // Timeout threshold for UART = number of symbols (~10 tics) with unchanged state on receive pin
 // #define BMS_LIB_READ_TOUT          (3) // 3.5T * 8 = 28 ticks, TOUT=3 -> ~24..33 ticks
@@ -69,10 +70,12 @@ namespace esphome
     idf_uart_for_lib_protocol->set_data_bits(8);
     idf_uart_for_lib_protocol->set_stop_bits(1);
     idf_uart_for_lib_protocol->set_parity(UARTParityOptions::UART_CONFIG_PARITY_NONE);
-    idf_uart_for_lib_protocol->set_rx_buffer_size(BUF_SIZE);
+    idf_uart_for_lib_protocol->set_rx_buffer_size(BMS_LIB_BUF_SIZE);
+    idf_uart_for_lib_protocol->set_tx_buffer_size(256);
+    idf_uart_for_lib_protocol->set_event_queue_size(20);
     idf_uart_for_lib_protocol->set_tx_pin(new InternalGPIOPin(17, false));
     idf_uart_for_lib_protocol->set_rx_pin(new InternalGPIOPin(16, false));
-    idf_uart_for_lib_protocol->set_uart_number(BMS_LIB_UART_PORT);
+    idf_uart_for_lib_protocol->set_uart_number(BMS_LIB_IDF_UART_PORT);
 
     idf_uart_for_lib_protocol->setup();
 
@@ -81,10 +84,12 @@ namespace esphome
     idf_uart_for_jk_bms->set_data_bits(8);
     idf_uart_for_jk_bms->set_stop_bits(1);
     idf_uart_for_jk_bms->set_parity(UARTParityOptions::UART_CONFIG_PARITY_NONE);
-    idf_uart_for_jk_bms->set_rx_buffer_size(BUF_SIZE);
+    idf_uart_for_jk_bms->set_rx_buffer_size(JK_BUF_SIZE);
+    idf_uart_for_jk_bms->set_tx_buffer_size(256);
+    idf_uart_for_jk_bms->set_event_queue_size(20);
     idf_uart_for_jk_bms->set_tx_pin(new InternalGPIOPin(23, false));
     idf_uart_for_jk_bms->set_rx_pin(new InternalGPIOPin(22, false));
-    idf_uart_for_jk_bm->set_uart_number(JK_UART_PORT);
+    idf_uart_for_jk_bms->set_uart_number(JK_IDF_UART_PORT);
 
     idf_uart_for_jk_bms->setup();
 

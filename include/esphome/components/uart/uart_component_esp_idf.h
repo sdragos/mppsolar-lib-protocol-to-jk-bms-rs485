@@ -31,7 +31,7 @@ namespace esphome
       uint8_t get_hw_serial_number() { return this->uart_num_; }
       QueueHandle_t *get_uart_event_queue() { return &this->uart_event_queue_; }
 
-      void set_uart_number(uint8_t uart_number) { this->uart_number_ = uart_number; }
+      void set_uart_number(uint8_t uart_number) { this->uart_num_ = uart_number; }
     protected:
       uart_port_t uart_num_;
       QueueHandle_t uart_event_queue_;
@@ -41,7 +41,7 @@ namespace esphome
       bool has_peek_{false};
       uint8_t peek_byte_;
 
-      uint8_t uart_number_;
+      bool uarts_in_use_[UART_NUM_MAX];
     };
 
   } // namespace uart

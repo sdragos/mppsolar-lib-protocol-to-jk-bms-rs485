@@ -58,14 +58,12 @@ namespace esphome
 
     void IDFUARTComponent::setup()
     {
-      static uint8_t next_uart_num = 0;
-      if (next_uart_num >= UART_NUM_MAX)
-      {
-        ESP_LOGW(TAG, "Maximum number of UART components created already.");
+      if (uarts_in_use_[this->uart_num_]){
+        ESP_LOGW(TAG, "UART %d number already in use.", this->uart_num_);
         this->mark_failed();
-        return;
+        return;        
       }
-      this->uart_num_ = next_uart_num++;
+
       ESP_LOGI(TAG, "Setting up UART %u...", this->uart_num_);
 
       this->lock_ = xSemaphoreCreateMutex();
@@ -84,8 +82,9 @@ namespace esphome
       err = uart_driver_install(this->uart_num_, /* UART RX ring buffer size. */ this->rx_buffer_size_,
                                 /* UART TX ring buffer size. If set to zero, driver will not use TX buffer, TX function will
                                    block task until all data have been sent out.*/
-                                0,
-                                /* UART event queue size/depth. */ 20, &(this->uart_event_queue_),
+                                this->tx_buffer_size_,
+                                /* UART event queue size/depth. */
+                                this->event_queue_size_, &(this->uart_event_queue_),
                                 /* Flags used to allocate the interrupt. */ 0);
       if (err != ESP_OK)
       {

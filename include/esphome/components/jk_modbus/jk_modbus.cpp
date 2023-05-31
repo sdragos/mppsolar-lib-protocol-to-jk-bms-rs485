@@ -40,19 +40,24 @@ bool JkModbus::parse_jk_modbus_byte_(uint8_t byte) {
   const uint8_t *raw = &this->rx_buffer_[0];
 
   // Byte 0: Start sequence (0x4E)
-  if (at == 0)
-    return true;
+  if (at == 0){
+    if (raw[0] == 0x4E)
+      return true;
+    else
+      return false;
+  }
+
   uint8_t address = raw[0];
 
   // Byte 1: Start sequence (0x57)
-  if (at == 1)
-    return true;
-
-  if (raw[0] != 0x4E || raw[1] != 0x57) {
-    ESP_LOGW(TAG, "Invalid header");
-
-    // return false to reset buffer
-    return false;
+  if (at == 1){
+    if (raw[0] == 0x57)
+      return true;
+    else
+    {
+      ESP_LOGW(TAG, "Invalid header");
+      return false;
+    }
   }
 
   // Byte 2: Size (low byte)

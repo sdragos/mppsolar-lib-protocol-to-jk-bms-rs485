@@ -7,8 +7,6 @@ namespace esphome {
 namespace jk_bms {
 
 class JkBms: public jk_modbus::JkModbusDevice, public sdragos::mppsolar::BMSLibProtocolDataAdapter {
- private:
-  bool has_data_ = false;
  public:
 
   void set_enable_fake_traffic(bool enable_fake_traffic) { enable_fake_traffic_ = enable_fake_traffic; }
@@ -21,7 +19,7 @@ class JkBms: public jk_modbus::JkModbusDevice, public sdragos::mppsolar::BMSLibP
 
   // Begin BMSLibProtocolDataAdapter overrides
 
-  bool hasData() override { return has_data_; };
+  bool hasData() override { return online_status_; };
 
   // Version information
   uint8_t *getBMSFirmwareVersion() override;

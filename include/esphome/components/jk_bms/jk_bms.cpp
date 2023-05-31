@@ -382,11 +382,6 @@ void JkBms::on_status_data_(const std::vector<uint8_t> &data) {
   // 00 00 00 00 68 00 00 54 D1: End of frame
 
   ESP_LOGI(TAG, "Updated.");
-
-  if (!has_data_){
-    ESP_LOGI(TAG, "We've got data.");
-    this->has_data_ = true;
-  }
 }
 
 void JkBms::update() {
