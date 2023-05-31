@@ -23,7 +23,7 @@
 /**
  * This is a example which BMS_LIBs any data it receives on UART back to the sender using RS485 interface in half duplex mode.
  */
-#define TAG "MPPSOLAR-RS485-LIBPROTOCOL-BMS"
+#define TAG "Main"
 
 // Note: Some pins on target chip cannot be assigned for UART communication.
 // Please refer to documentation for selected board and target to configure pins using Kconfig.
@@ -38,7 +38,7 @@
 #define BMS_LIB_UART_BAUD_RATE (CONFIG_BMS_LIB_UART_BAUD_RATE)
 #define JK_UART_BAUD_RATE (CONFIG_JK_UART_BAUD_RATE)
 
-#define BUF_SIZE (256)
+#define BUF_SIZE (384)
 
 // Read packet timeout
 #define BMS_LIB_TASK_STACK_SIZE (32768)
@@ -64,39 +64,43 @@ namespace esphome
 
   static void setup()
   {
-    IDFUARTComponent *idf_uart_1 = new IDFUARTComponent();
-    idf_uart_1->set_baud_rate(BMS_LIB_UART_BAUD_RATE);
-    idf_uart_1->set_data_bits(8);
-    idf_uart_1->set_stop_bits(1);
-    idf_uart_1->set_parity(UARTParityOptions::UART_CONFIG_PARITY_NONE);
-    idf_uart_1->set_rx_buffer_size(BUF_SIZE);
-    idf_uart_1->set_tx_pin(new InternalGPIOPin(BMS_LIB_TXD, false));
-    idf_uart_1->set_rx_pin(new InternalGPIOPin(BMS_LIB_RXD, false));
+    IDFUARTComponent *idf_uart_for_lib_protocol = new IDFUARTComponent();
+    idf_uart_for_lib_protocol->set_baud_rate(BMS_LIB_UART_BAUD_RATE);
+    idf_uart_for_lib_protocol->set_data_bits(8);
+    idf_uart_for_lib_protocol->set_stop_bits(1);
+    idf_uart_for_lib_protocol->set_parity(UARTParityOptions::UART_CONFIG_PARITY_NONE);
+    idf_uart_for_lib_protocol->set_rx_buffer_size(BUF_SIZE);
+    idf_uart_for_lib_protocol->set_tx_pin(new InternalGPIOPin(17, false));
+    idf_uart_for_lib_protocol->set_rx_pin(new InternalGPIOPin(16, false));
+    idf_uart_for_lib_protocol->set_uart_number(BMS_LIB_UART_PORT);
 
-    idf_uart_1->setup();
+    idf_uart_for_lib_protocol->setup();
 
-    IDFUARTComponent *idf_uart_2 = new IDFUARTComponent();
-    idf_uart_2->set_baud_rate(JK_UART_BAUD_RATE);
-    idf_uart_2->set_data_bits(8);
-    idf_uart_2->set_stop_bits(1);
-    idf_uart_2->set_parity(UARTParityOptions::UART_CONFIG_PARITY_NONE);
-    idf_uart_2->set_rx_buffer_size(BUF_SIZE);
-    idf_uart_2->set_tx_pin(new InternalGPIOPin(JK_TXD, false));
-    idf_uart_2->set_rx_pin(new InternalGPIOPin(JK_RXD, false));
+    IDFUARTComponent *idf_uart_for_jk_bms = new IDFUARTComponent();
+    idf_uart_for_jk_bms->set_baud_rate(JK_UART_BAUD_RATE);
+    idf_uart_for_jk_bms->set_data_bits(8);
+    idf_uart_for_jk_bms->set_stop_bits(1);
+    idf_uart_for_jk_bms->set_parity(UARTParityOptions::UART_CONFIG_PARITY_NONE);
+    idf_uart_for_jk_bms->set_rx_buffer_size(BUF_SIZE);
+    idf_uart_for_jk_bms->set_tx_pin(new InternalGPIOPin(23, false));
+    idf_uart_for_jk_bms->set_rx_pin(new InternalGPIOPin(22, false));
+    idf_uart_for_jk_bm->set_uart_number(JK_UART_PORT);
 
-    idf_uart_2->setup();
+    idf_uart_for_jk_bms->setup();
 
     ESP_LOGI(TAG, "UART setup done.\r\n");
 
     // instantiate the JK BMS protocol handler
     jkModbus_ = new esphome::jk_modbus::JkModbus();
-    jkModbus_->set_uart_parent(idf_uart_2);
+    jkModbus_->set_uart_parent(idf_uart_for_jk_bms);
+    jkModbus_->set_rx_timeout(100);
 
     ESP_LOGI(TAG, "JK Modbus setup done.\r\n");
 
     jkBms_ = new esphome::jk_bms::JkBms();
     jkBms_->set_parent(jkModbus_);
-    jkBms_->set_enable_fake_traffic(true);
+    jkBms_->set_address(0x4E);
+    //jkBms_->set_enable_fake_traffic(true);
 
     ESP_LOGI(TAG, "JK BMS setup done.\r\n");
 
@@ -108,7 +112,7 @@ namespace esphome
 
     ESP_LOGI(TAG, "JK Modbus setup done.\r\n");
 
-    bmsLibProtocolUARTHandler_ = new BMSLibProtocolUARTHandler(idf_uart_1);
+    bmsLibProtocolUARTHandler_ = new BMSLibProtocolUARTHandler(idf_uart_for_lib_protocol);
 
     //auto mockDataAdapter = new BMSLibProtocolMockDataAdapter();
     bmsLibProtocolUARTHandler_->setDataAdapter(jkBms_);
@@ -190,7 +194,10 @@ namespace esphome
 
     TickType_t fiveSecondsTicks = 5000 / portTICK_PERIOD_MS;
     TickType_t thirtySecondsTicks = 30000 / portTICK_PERIOD_MS;
+    
     jkBms_->update();
+    
+    
     while (true)
     {
       bmsLibProtocolUARTHandler_->loop();
@@ -200,11 +207,10 @@ namespace esphome
       if ((tickCount - previousUpdateWasAtTickCount) >= fiveSecondsTicks)
       {
         jkBms_->update();
-        ESP_LOGI(TAG, "Updating");
         previousUpdateWasAtTickCount = tickCount;
       }
 
-      vTaskDelay(10);
+      vTaskDelay(20 / portTICK_PERIOD_MS);
     }
 
     vTaskDelete(NULL);

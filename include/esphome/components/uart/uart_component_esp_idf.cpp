@@ -1,5 +1,6 @@
 //This file contains code taken from https://github.com/esphome/esphome/blob/dev/esphome/components/uart/uart_component_esp_idf.cpp
 //It is likely not a 1 to 1 copy as some things may have been modified so that it works without other implementations from ESPHome
+#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 
 #include "uart_component_esp_idf.h"
 #include "freertos/semphr.h"
@@ -57,7 +58,7 @@ namespace esphome
 
     void IDFUARTComponent::setup()
     {
-      static uint8_t next_uart_num = 1;
+      static uint8_t next_uart_num = 0;
       if (next_uart_num >= UART_NUM_MAX)
       {
         ESP_LOGW(TAG, "Maximum number of UART components created already.");
@@ -65,7 +66,7 @@ namespace esphome
         return;
       }
       this->uart_num_ = next_uart_num++;
-      ESP_LOGD(TAG, "Setting up UART %u...", this->uart_num_);
+      ESP_LOGI(TAG, "Setting up UART %u...", this->uart_num_);
 
       this->lock_ = xSemaphoreCreateMutex();
 

@@ -101,6 +101,37 @@ class JkBms: public jk_modbus::JkModbusDevice, public sdragos::mppsolar::BMSLibP
   float total_charging_cycle_capacity_sensor_;
   float battery_strings_sensor_;
   
+  // Bit 0    Low capacity                                1 (alarm), 0 (normal)    warning
+  const uint16_t errors_bitmask_warn_low_capacity = 0x0001;
+  // Bit 1    Power tube overtemperature                  1 (alarm), 0 (normal)    alarm
+  const uint16_t errors_bitmask_alarm_power_tube_over_temp = 0x0002;
+  // Bit 2    Charging overvoltage                        1 (alarm), 0 (normal)    alarm
+  const uint16_t errors_bitmask_alarm_charging_overvoltage = 0x0004;
+  // Bit 3    Discharging undervoltage                    1 (alarm), 0 (normal)    alarm
+  const uint16_t errors_bitmask_alarm_discharging_undervoltage = 0x0008;
+  // Bit 4    Battery over temperature                    1 (alarm), 0 (normal)    alarm
+  const uint16_t errors_bitmask_alarm_battery_over_temperature = 0x0010;
+  // Bit 5    Charging overcurrent                        1 (alarm), 0 (normal)    alarm
+  const uint16_t errors_bitmask_alarm_charging_overcurrent = 0x0020;
+  // Bit 6    Discharging overcurrent                     1 (alarm), 0 (normal)    alarm
+  const uint16_t errors_bitmask_alarm_discharging_overcurrent = 0x0040;
+  // Bit 7    Cell pressure difference                    1 (alarm), 0 (normal)    alarm
+  const uint16_t errors_bitmask_alarm_cell_pressure_difference = 0x0080;
+  // Bit 8    Overtemperature alarm in the battery box    1 (alarm), 0 (normal)    alarm
+  const uint16_t errors_bitmask_alarm_battery_box_overtemperature = 0x0100;
+  // Bit 9    Battery low temperature                     1 (alarm), 0 (normal)    alarm
+  const uint16_t errors_bitmask_alarm_battery_low_temperature = 0x0200;
+  // Bit 10   Cell overvoltage                            1 (alarm), 0 (normal)    alarm
+  const uint16_t errors_bitmask_alarm_cell_overvoltage = 0x0400;
+  // Bit 11   Cell undervoltage                           1 (alarm), 0 (normal)    alarm
+  const uint16_t errors_bitmask_alarm_cell_undervoltage = 0x0800;
+  // Bit 12   309_A protection                            1 (alarm), 0 (normal)    alarm
+  const uint16_t errors_bitmask_alarm_309A = 0x1000;
+  // Bit 13   309_A protection                            1 (alarm), 0 (normal)    alarm
+  const uint16_t errors_bitmask_alarm_309A_2 = 0x2000;
+  // Bit 14   Reserved
+  // Bit 15   Reserved
+
   uint16_t errors_bitmask_sensor_;
   uint16_t operation_mode_bitmask_sensor_;
   float total_voltage_overvoltage_protection_sensor_;

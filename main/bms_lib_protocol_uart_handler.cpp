@@ -14,7 +14,7 @@ namespace sdragos
             _mapDataAddressToReplyToRequestNoParamFunc[0x0001] = &BMSLibProtocolUARTHandler::replyForProtocolType;
             _mapDataAddressToReplyToRequestNoParamFunc[0x0002] = &BMSLibProtocolUARTHandler::replyForProtocolVersion;
             _mapDataAddressToReplyToRequestNoParamFunc[0x0003] = &BMSLibProtocolUARTHandler::replyForBMSFirmwareVersion;
-            _mapDataAddressToReplyToRequestNoParamFunc[0x0004] = &BMSLibProtocolUARTHandler::replyForBMSHardwareVersion;
+            _mapDataAddressToReplyToRequestNoParamFunc[0x0005] = &BMSLibProtocolUARTHandler::replyForBMSHardwareVersion;
 
             _mapDataAddressToReplyToRequestNoParamFunc[0x0010] = &BMSLibProtocolUARTHandler::replyForNumberOfCellsRequest;
             _mapDataAddressToReplyToRequestNoParamFunc[0x0025] = &BMSLibProtocolUARTHandler::replyForNumberOfTemperatureSensors;
@@ -86,6 +86,10 @@ namespace sdragos
 
         void BMSLibProtocolUARTHandler::setup()
         {
+            ESP_LOGD("BMSLibProtocolUARTHandler", "Test debug message.");
+            ESP_LOGE("BMSLibProtocolUARTHandler", "Test error message.");
+            ESP_LOGW("BMSLibProtocolUARTHandler", "Test warning message.");
+            ESP_LOGI("BMSLibProtocolUARTHandler", "Test information message.");
         }
 
         void BMSLibProtocolUARTHandler::loop()
@@ -343,8 +347,8 @@ namespace sdragos
         { // 0x0001, expected 2 bytes reply
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForProtocolType");
             auto reply = new uint8_t[2];
-            reply[0] = 0x1F;
-            reply[1] = 0x2F;
+            reply[0] = 0x00;
+            reply[1] = 0x00;
             send2BytesPayloadReply(reply);
         }
 
@@ -352,8 +356,8 @@ namespace sdragos
         { // 0x0002, expected 2 bytes reply
             ESP_LOGD("BMSLibProtocolUARTHandler", "%s", "replyForProtocolVersion");
             auto reply = new uint8_t[2];
-            reply[0] = 0x3F;
-            reply[1] = 0x4F;
+            reply[0] = 0x00;
+            reply[1] = 0x00;
             send2BytesPayloadReply(reply);
         }
 

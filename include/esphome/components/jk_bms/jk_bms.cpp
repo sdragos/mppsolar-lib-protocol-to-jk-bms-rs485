@@ -65,7 +65,7 @@ void JkBms::on_status_data_(const std::vector<uint8_t> &data) {
     return (uint32_t(jk_get_16bit(i + 0)) << 16) | (uint32_t(jk_get_16bit(i + 2)) << 0);
   };
 
-  ESP_LOGI(TAG, "Status frame received");
+  ESP_LOGI(TAG, "Status frame received.");
 
   // Status request
   // -> 0x4E 0x57 0x00 0x13 0x00 0x00 0x00 0x00 0x06 0x03 0x00 0x00 0x00 0x00 0x00 0x00 0x68 0x00 0x00 0x01 0x29
@@ -127,7 +127,6 @@ void JkBms::on_status_data_(const std::vector<uint8_t> &data) {
   // 0x80 0x00 0x1D: Read power tube temperature                 29°C                      1.0 °C
   // --->  99 = 99°C, 100 = 100°C, 101 = -1°C, 140 = -40°C
   this->power_tube_temperature_sensor_ = get_temperature_(jk_get_16bit(offset + 3 * 0));
-  ESP_LOGI(TAG, "power_tube_temperature_sensor_ %f", this->power_tube_temperature_sensor_);
 
   // 0x81 0x00 0x1E: Read the temperature in the battery box     30°C                      1.0 °C
   this->temperature_sensor_1_sensor_ = get_temperature_(jk_get_16bit(offset + 3 * 1));
@@ -159,7 +158,6 @@ void JkBms::on_status_data_(const std::vector<uint8_t> &data) {
 
   // 0x86 0x02: Number of battery temperature sensors             2                        1.0  count
   this->temperature_sensors_sensor_ = data[offset + 2 + 3 * 5];
-  ESP_LOGI(TAG, "temperature_sensors_sensor_ = %d", this->temperature_sensors_sensor_);
 
   // 0x87 0x00 0x04: Number of battery cycles                     4                        1.0  count
   this->charging_cycles_sensor_ = (float) jk_get_16bit(offset + 4 + 3 * 5);
@@ -383,6 +381,8 @@ void JkBms::on_status_data_(const std::vector<uint8_t> &data) {
 
   // 00 00 00 00 68 00 00 54 D1: End of frame
 
+  ESP_LOGI(TAG, "Updated.");
+
   if (!has_data_){
     ESP_LOGI(TAG, "We've got data.");
     this->has_data_ = true;
@@ -390,7 +390,7 @@ void JkBms::on_status_data_(const std::vector<uint8_t> &data) {
 }
 
 void JkBms::update() {
-  ESP_LOGI(TAG, "Updating.");
+  ESP_LOGI(TAG, "Requesting update.");
   this->track_online_status_();
   this->read_registers(FUNCTION_READ_ALL, ADDRESS_READ_ALL);
 
@@ -634,7 +634,7 @@ void JkBms::dump_config() {  // NOLINT(google-readability-function-size,readabil
     auto reply = new uint8_t[2];
     reply[0] = 0;
     reply[1] = 0;
-    if (cellNumber < cell_count_){
+    if (cellNumber <= cell_count_){
       ESP_LOGI(TAG, "Sending voltage for cellNumber %d: %f", cellNumber, cells_[cellNumber-1].cell_voltage_sensor_);
       float cellVoltageAdjusted =cells_[cellNumber-1].cell_voltage_sensor_ * 10;
       reply[1] =  static_cast<uint8_t>(cellVoltageAdjusted);
@@ -653,7 +653,7 @@ void JkBms::dump_config() {  // NOLINT(google-readability-function-size,readabil
     auto reply = new uint8_t[2];
     reply[0] = 0;
     reply[1] = 0;
-    if (temperatureSensorNumber < temperature_sensors_sensor_){
+    if (temperatureSensorNumber <= temperature_sensors_sensor_){
       ESP_LOGI(TAG, "Sending temperature for sensorNumber %d: %f", temperatureSensorNumber, temperature_sensors_[temperatureSensorNumber-1].temperature_sensor_);
       float temperatureAdjusted = (temperature_sensors_[temperatureSensorNumber-1].temperature_sensor_ + 273.15) * 10;
       uint16_t tempKelvin =  static_cast<uint16_t>(temperatureAdjusted);
@@ -700,7 +700,7 @@ void JkBms::dump_config() {  // NOLINT(google-readability-function-size,readabil
   uint8_t *JkBms::getStateOfCharge() { 
     auto reply = new uint8_t[2];
 
-    float capacityRemaining = this->capacity_remaining_sensor_ * 10;
+    float capacityRemaining = this->capacity_remaining_sensor_;
     uint16_t capacityRemainingAdjusted = static_cast<uint16_t>(capacityRemaining);
     reply[0] = (capacityRemainingAdjusted >> 8) & 0xFF;
     reply[1] = capacityRemainingAdjusted & 0xFF;
@@ -712,13 +712,13 @@ void JkBms::dump_config() {  // NOLINT(google-readability-function-size,readabil
     auto reply = new uint8_t[4];
 
     float totalCapacityMilliAhAdjustedFloat = this->total_battery_capacity_setting_sensor_ * 1000;
-    uint16_t totalCapacityMilliAhAdjusted = static_cast<uint16_t>(totalCapacityMilliAhAdjustedFloat);
+    uint32_t totalCapacityMilliAhAdjusted = static_cast<uint32_t>(totalCapacityMilliAhAdjustedFloat);
     reply[0] = (totalCapacityMilliAhAdjusted >> 24) & 0xFF;
     reply[1] = (totalCapacityMilliAhAdjusted >> 16) & 0xFF;
     reply[2] = (totalCapacityMilliAhAdjusted >> 8) & 0xFF;
     reply[3] = totalCapacityMilliAhAdjusted & 0xFF;
 
-    ESP_LOGI(TAG, "Sending total cxapacity: %d", totalCapacityMilliAhAdjusted);
+    ESP_LOGI(TAG, "Sending total cxapacity: %lu", totalCapacityMilliAhAdjusted);
     return reply;
   };
 
@@ -728,6 +728,11 @@ void JkBms::dump_config() {  // NOLINT(google-readability-function-size,readabil
   //      0x01 - Below normal
   //      0x02 - Above higher limit
   //      0xF0 - Other error
+  const uint8_t LibProtocolState_Normal = 0x00;
+  const uint8_t LibProtocolState_BelowNormal = 0x01;
+  const uint8_t LibProtocolState_AboveHigherLimit = 0x02;
+  const uint8_t LibProtocolState_OtherError = 0xF0;
+
   uint8_t *JkBms::getNumberOfCellsForWarningInfo() { 
     return NotImplemented2Bytes();
   };
@@ -735,16 +740,38 @@ void JkBms::dump_config() {  // NOLINT(google-readability-function-size,readabil
     return NotImplemented2Bytes();
   };
   uint8_t *JkBms::getNumberOfTemperatureSensorsForWarningInfo() { 
-    return NotImplemented2Bytes();
+    auto reply = new uint8_t[2];
+    reply[0] = 0;
+    reply[1] = temperature_sensors_sensor_;
+    ESP_LOGI(TAG, "Sending number of temperature sensors for warning info: %d", cell_count_);
+    return reply;
   };
   uint8_t *JkBms::getTemperatureSensorPairState(size_t oddTemperatureSensorNumber) { 
-    return NotImplemented2Bytes();
+    auto reply = new uint8_t[2];
+    reply[0] = 0;
+    reply[1] = 0;
+
+    return reply;
   };
   uint8_t *JkBms::getModuleChargeVoltageState() { 
-    return NotImplemented2Bytes();
+    auto reply = new uint8_t[2];
+    reply[0] = 0;
+    reply[1] = LibProtocolState_Normal;
+
+    if ((errors_bitmask_sensor_ & errors_bitmask_alarm_charging_overvoltage) == errors_bitmask_alarm_charging_overvoltage)
+      reply[1] |= LibProtocolState_AboveHigherLimit;
+
+    return reply;
   };
   uint8_t *JkBms::getModuleDischargeVoltageState() { 
-    return NotImplemented2Bytes();
+    auto reply = new uint8_t[2];
+    reply[0] = 0;
+    reply[1] = LibProtocolState_Normal;
+
+    if ((errors_bitmask_sensor_ & errors_bitmask_alarm_discharging_undervoltage) == errors_bitmask_alarm_discharging_undervoltage)
+      reply[1] |= LibProtocolState_BelowNormal;
+    
+    return reply;
   };
   uint8_t *JkBms::getCellChargeVoltageState() { 
     return NotImplemented2Bytes();
@@ -753,16 +780,80 @@ void JkBms::dump_config() {  // NOLINT(google-readability-function-size,readabil
     return NotImplemented2Bytes();
   };
   uint8_t *JkBms::getModuleChargeCurrentState() { 
-    return NotImplemented2Bytes();
+    auto reply = new uint8_t[2];
+    reply[0] = 0;
+    reply[1] = LibProtocolState_Normal;
+
+    if ((errors_bitmask_sensor_ & errors_bitmask_alarm_charging_overcurrent) == errors_bitmask_alarm_charging_overcurrent)
+      reply[1] |= LibProtocolState_AboveHigherLimit;
+
+    return reply;
   };
   uint8_t *JkBms::getModuleDischargeCurrentState() { 
-    return NotImplemented2Bytes();
+    auto reply = new uint8_t[2];
+    reply[0] = 0;
+    reply[1] = LibProtocolState_Normal;
+
+    if ((errors_bitmask_sensor_ & errors_bitmask_alarm_discharging_overcurrent) == errors_bitmask_alarm_discharging_overcurrent)
+      reply[1] |= LibProtocolState_AboveHigherLimit;
+
+    return reply;
   };
   uint8_t *JkBms::getModuleChargeTemperatureState() { 
-    return NotImplemented2Bytes();
+    auto reply = new uint8_t[2];
+    reply[0] = 0;
+    reply[1] = LibProtocolState_Normal;
+
+    if ((errors_bitmask_sensor_ & errors_bitmask_alarm_battery_low_temperature) == errors_bitmask_alarm_battery_low_temperature)
+    {
+      reply[1] |= LibProtocolState_BelowNormal;
+      return reply;
+    }
+
+    if ((errors_bitmask_sensor_ & errors_bitmask_alarm_battery_over_temperature) == errors_bitmask_alarm_battery_over_temperature)
+    {
+      reply[1] |= LibProtocolState_AboveHigherLimit;
+      return reply;
+    }
+
+    if ((errors_bitmask_sensor_ & errors_bitmask_alarm_battery_box_overtemperature) == errors_bitmask_alarm_battery_box_overtemperature)
+    {
+      reply[1] |= LibProtocolState_AboveHigherLimit;
+      return reply;
+    }
+
+    if ((errors_bitmask_sensor_ & errors_bitmask_alarm_power_tube_over_temp) == errors_bitmask_alarm_power_tube_over_temp)
+    {
+      reply[1] |= LibProtocolState_AboveHigherLimit;
+      return reply;
+    }
+
+    return reply;
   };
   uint8_t *JkBms::getModuleDischargeTemperatureState() { 
-    return NotImplemented2Bytes();
+    auto reply = new uint8_t[2];
+    reply[0] = 0;
+    reply[1] = LibProtocolState_Normal;
+
+    if ((errors_bitmask_sensor_ & errors_bitmask_alarm_battery_over_temperature) == errors_bitmask_alarm_battery_over_temperature)
+    {
+      reply[1] |= LibProtocolState_AboveHigherLimit;
+      return reply;
+    }
+
+    if ((errors_bitmask_sensor_ & errors_bitmask_alarm_battery_box_overtemperature) == errors_bitmask_alarm_battery_box_overtemperature)
+    {
+      reply[1] |= LibProtocolState_AboveHigherLimit;
+      return reply;
+    }
+
+    if ((errors_bitmask_sensor_ & errors_bitmask_alarm_power_tube_over_temp) == errors_bitmask_alarm_power_tube_over_temp)
+    {
+      reply[1] |= LibProtocolState_AboveHigherLimit;
+      return reply;
+    }
+
+    return reply;
   };
   uint8_t *JkBms::getCellChargeTemperatureState() { 
     return NotImplemented2Bytes();
@@ -773,22 +864,77 @@ void JkBms::dump_config() {  // NOLINT(google-readability-function-size,readabil
 
   // BMS charge and discharge information inquiry
   uint8_t *JkBms::getChargeVoltageLimit() { 
-    return nullptr;
+    auto reply = new uint8_t[2];
+    float chargingVoltageLimit = this->cell_voltage_overvoltage_recovery_sensor_ * this->cell_count_ * 10;
+    uint16_t chargingVoltageLimitInt = static_cast<uint16_t>(chargingVoltageLimit);
+    reply[0] = (chargingVoltageLimitInt >> 8) & 0xFF;
+    reply[1] = chargingVoltageLimitInt & 0xFF;
+
+    ESP_LOGI(TAG, "Sending charge voltage limit: %d", chargingVoltageLimitInt);
+    return reply;
   };
   uint8_t *JkBms::getDischargeVoltageLimit() { 
-    return nullptr;
+    auto reply = new uint8_t[2];
+    float dischargeVoltageLimit = this->cell_voltage_undervoltage_recovery_sensor_ * this->cell_count_ * 10;
+    uint16_t dischargeVoltageLimitInt = static_cast<uint16_t>(dischargeVoltageLimit);
+    reply[0] = (dischargeVoltageLimitInt >> 8) & 0xFF;
+    reply[1] = dischargeVoltageLimitInt & 0xFF;
+
+    ESP_LOGI(TAG, "Sending discharge voltage limit: %d", dischargeVoltageLimitInt);
+    return reply;
   };
   uint8_t *JkBms::getChargeCurrentLimit() { 
-    return nullptr;
+    auto reply = new uint8_t[2];
+    float chargingCurrentLimit = this->charging_overcurrent_protection_sensor_ * 10;
+    uint16_t chargingCurrentLimitInt = static_cast<uint16_t>(chargingCurrentLimit);
+    reply[0] = (chargingCurrentLimitInt >> 8) & 0xFF;
+    reply[1] = chargingCurrentLimitInt & 0xFF;
+
+    ESP_LOGI(TAG, "Sending charging current limit: %d", chargingCurrentLimitInt);
+    return reply;
   };
   uint8_t *JkBms::getDischargeCurrentLimit() { 
-    return nullptr;
+    auto reply = new uint8_t[2];
+    float dischargeCurrentLimit = this->discharging_overcurrent_protection_sensor_ * 10;
+    uint16_t dischargeCurrentLimitInt = static_cast<uint16_t>(dischargeCurrentLimit);
+    reply[0] = (dischargeCurrentLimitInt >> 8) & 0xFF;
+    reply[1] = dischargeCurrentLimitInt & 0xFF;
+
+    ESP_LOGI(TAG, "Sending discharge current limit: %d", dischargeCurrentLimitInt);
+    return reply;
   };
+
+
   uint8_t *JkBms::getChargeDischargeStatus() { 
-    return nullptr;
+    auto reply = new uint8_t[2];
+    reply[0] = 0;
+    reply[1] = 0;
+
+    const uint8_t fullChargeRequest = 8;   // 0000 1000 Set when BMS needs battery fully charged
+    const uint8_t chargeImmediately2 = 16; // 0001 0000 Set when SoC is low, like 10~14%
+    const uint8_t chargeImmediately = 32;  // 0010 0000 Set when SoC is very low, like 5~9%
+    const uint8_t dischargeEnable = 64;    // 0100 0000
+    const uint8_t chargeEnable = 128;      // 1000 0000
+
+    if (this->charging_binary_sensor_ && this->temperature_sensor_1_sensor_ < 35 && this ->temperature_sensor_2_sensor_ < 35)
+      reply[1] |= chargeEnable;
+    
+    if (this->discharging_binary_sensor_ && this->temperature_sensor_1_sensor_ < 35 && this -> temperature_sensor_2_sensor_ < 35)
+      reply[1] |= dischargeEnable;
+
+    if (this->capacity_remaining_sensor_ >= 10 && this->capacity_remaining_sensor_ <=15)
+      reply[1] |= chargeImmediately2;
+
+    if (this->capacity_remaining_sensor_ < 10)
+      reply[1] |= chargeImmediately;
+
+    // no idea when to request full charge
+
+    return reply;
+
   };
   uint8_t *JkBms::getRuntimeToEmptySeconds() { 
-    return nullptr;
+    return NotImplemented2Bytes();
   };
 
 }  // namespace jk_bms

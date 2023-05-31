@@ -1,3 +1,4 @@
+#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 //This file contains code taken from https://github.com/syssi/esphome-jk-bms/blob/main/components/jk_modbus/jk_modbus.cpp
 
 #include "jk_modbus.h"
