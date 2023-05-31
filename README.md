@@ -5,7 +5,7 @@ This work is based on:
 | Source nr. | Source URL | Description |
 | :--------- | :--------- | :---------- |
 | 1. | https://github.com/esphome/esphome | From here I took the UART related code and got inspiration for the code structure. I might at some point make the implementation fully compatible with ESP Home. |
-| 2. | https://github.com/syssi/esphome-jk-bms/ | From here I took the |
+| 2. | https://github.com/syssi/esphome-jk-bms/ | From here I took the JK BMS related code, that I modified so that it also behaves as a data adapter for my implementation. |
 
 All you need to get going is Visual Studio Code and the ESP IDF extension installed.
 
