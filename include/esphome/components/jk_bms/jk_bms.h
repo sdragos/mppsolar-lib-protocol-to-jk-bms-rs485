@@ -19,7 +19,7 @@ class JkBms: public jk_modbus::JkModbusDevice, public sdragos::mppsolar::BMSLibP
 
   // Begin BMSLibProtocolDataAdapter overrides
 
-  bool hasData() override { return online_status_; };
+  bool hasUpdatedData() override { return online_status_ && has_recent_data_; };
 
   // Version information
   uint8_t *getBMSFirmwareVersion() override;
@@ -181,6 +181,8 @@ class JkBms: public jk_modbus::JkModbusDevice, public sdragos::mppsolar::BMSLibP
   bool discharging_switch_binary_sensor_;
   bool dedicated_charger_switch_binary_sensor_;
   bool online_status_ = false;
+  bool has_recent_data_ = false;
+  uint32_t last_successful_read_data_ = 0;
 
   std::string errors_text_sensor_;
   std::string operation_mode_text_sensor_;

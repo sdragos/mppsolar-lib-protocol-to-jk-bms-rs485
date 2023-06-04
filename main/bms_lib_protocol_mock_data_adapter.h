@@ -13,7 +13,7 @@ namespace sdragos
             public:
                 BMSLibProtocolMockDataAdapter() = default;
 
-                bool hasData() override;
+                bool hasUpdatedData() override;
 
                 // Version information
                 uint8_t *getBMSFirmwareVersion() override;

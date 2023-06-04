@@ -4,7 +4,7 @@ namespace sdragos
 {
     namespace mppsolar
     {
-        bool BMSLibProtocolMockDataAdapter::hasData()
+        bool BMSLibProtocolMockDataAdapter::hasUpdatedData()
         {
             return true;
         }

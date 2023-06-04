@@ -381,6 +381,7 @@ void JkBms::on_status_data_(const std::vector<uint8_t> &data) {
 
   // 00 00 00 00 68 00 00 54 D1: End of frame
 
+  last_successful_read_data_ = (uint32_t)(esp_timer_get_time() / 1000ULL);
   ESP_LOGI(TAG, "Updated.");
 }
 
@@ -445,6 +446,24 @@ void JkBms::track_online_status_() {
   if (this->no_response_count_ == MAX_NO_RESPONSE_COUNT) {
     this->online_status_ = false;
     this->no_response_count_++;
+  }
+  
+  const uint32_t now = (uint32_t)(esp_timer_get_time() / 1000ULL);
+  uint32_t elapsed = 0;
+  if (now < last_successful_read_data_){
+    //we had a timer reset
+    elapsed = now + (UINT32_MAX - last_successful_read_data_);
+  }
+  else{
+    elapsed = now - last_successful_read_data_;
+  }
+
+  if (  last_successful_read_data_ == 0 || 
+        elapsed > 30000){
+    has_recent_data_ = false;
+  }
+  else{
+    has_recent_data_ = true;
   }
 }
 

@@ -12,7 +12,7 @@ namespace sdragos
         {
         public:                                                                                 // Payload size         Units
             // Returns true when data is available to be read
-            virtual bool hasData() = 0;
+            virtual bool hasUpdatedData() = 0;
             // Version information
             virtual uint8_t *getBMSFirmwareVersion() = 0;                                       //      4 bytes
             virtual uint8_t *getBMSHardwareVersion() = 0;                                       //      4 bytes
