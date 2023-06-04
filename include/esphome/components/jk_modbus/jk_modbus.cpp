@@ -15,13 +15,30 @@ void JkModbus::loop() {
     this->last_jk_modbus_byte_ = now;
   }
 
+  size_t iterationCount = 0;
   while (this->available()) {
     uint8_t byte;
     this->read_byte(&byte);
     if (this->parse_jk_modbus_byte_(byte)) {
       this->last_jk_modbus_byte_ = now;
     } else {
-      this->rx_buffer_.clear();
+      if (!this->rx_buffer_.empty()){
+        do{
+          this->rx_buffer_.erase(this->rx_buffer_.begin());
+          if (!this->rx_buffer_.empty() && this->rx_buffer_.at(0) == 0x4E)
+          {
+            ESP_LOGW(TAG, "Found next possible start of frame.");
+            this->last_jk_modbus_byte_ = now;
+            break;
+          }
+        }
+        while(!this->rx_buffer_.empty());
+      }
+    }
+
+    if (iterationCount++ > 195 && this->rx_buffer_.size() == 0){
+      //Breaking out of the loop to avoid starving other tasks
+      break;
     }
   }
 }
@@ -51,11 +68,11 @@ bool JkModbus::parse_jk_modbus_byte_(uint8_t byte) {
 
   // Byte 1: Start sequence (0x57)
   if (at == 1){
-    if (raw[0] == 0x57)
+    if (raw[1] == 0x57)
       return true;
     else
     {
-      ESP_LOGW(TAG, "Invalid header");
+      //ESP_LOGW(TAG, "Invalid header");
       return false;
     }
   }

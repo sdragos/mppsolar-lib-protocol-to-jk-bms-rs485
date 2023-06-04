@@ -124,6 +124,7 @@ namespace sdragos
 
                :O - let's not blow up the house
             */
+            size_t iterationCount = 0;
             while (this->available())
             {
                 uint8_t byteRead = read();
@@ -148,9 +149,20 @@ namespace sdragos
                     }
                 }
 
+                iterationCount++;
+
                 // If we're at the start of the buffer, look for SLAVE_ID to start a frame
-                if (_rxBufferIndex == 0 && byteRead != slaveId)
-                    continue;
+                if (_rxBufferIndex == 0 && byteRead != slaveId){
+                    if (iterationCount > 15){
+                        // The iteration has been going on for too long without
+                        // a result, so we should break out of it and let other
+                        // processes do work too.
+                        break;
+                    }
+                    else{
+                        continue;
+                    }
+                }
 
                 // Add byte to the buffer
                 _rxBuffer[_rxBufferIndex++] = byteRead;

@@ -38,8 +38,8 @@
 #define BMS_LIB_UART_BAUD_RATE (CONFIG_BMS_LIB_UART_BAUD_RATE)
 #define JK_UART_BAUD_RATE (CONFIG_JK_UART_BAUD_RATE)
 
-#define BMS_LIB_BUF_SIZE (384)
-#define JK_BUF_SIZE (2048)
+#define BMS_LIB_BUF_SIZE (256)
+#define JK_BUF_SIZE (384)
 
 // Read packet timeout
 #define BMS_LIB_TASK_STACK_SIZE (32768)
@@ -71,7 +71,7 @@ namespace esphome
     idf_uart_for_lib_protocol->set_stop_bits(1);
     idf_uart_for_lib_protocol->set_parity(UARTParityOptions::UART_CONFIG_PARITY_NONE);
     idf_uart_for_lib_protocol->set_rx_buffer_size(BMS_LIB_BUF_SIZE);
-    idf_uart_for_lib_protocol->set_tx_buffer_size(256);
+    idf_uart_for_lib_protocol->set_tx_buffer_size(0);
     idf_uart_for_lib_protocol->set_event_queue_size(20);
     idf_uart_for_lib_protocol->set_tx_pin(new InternalGPIOPin(17, false));
     idf_uart_for_lib_protocol->set_rx_pin(new InternalGPIOPin(16, false));
@@ -85,7 +85,7 @@ namespace esphome
     idf_uart_for_jk_bms->set_stop_bits(1);
     idf_uart_for_jk_bms->set_parity(UARTParityOptions::UART_CONFIG_PARITY_NONE);
     idf_uart_for_jk_bms->set_rx_buffer_size(JK_BUF_SIZE);
-    idf_uart_for_jk_bms->set_tx_buffer_size(256);
+    idf_uart_for_jk_bms->set_tx_buffer_size(0);
     idf_uart_for_jk_bms->set_event_queue_size(20);
     idf_uart_for_jk_bms->set_tx_pin(new InternalGPIOPin(23, false));
     idf_uart_for_jk_bms->set_rx_pin(new InternalGPIOPin(22, false));
@@ -215,7 +215,7 @@ namespace esphome
         previousUpdateWasAtTickCount = tickCount;
       }
 
-      vTaskDelay(20 / portTICK_PERIOD_MS);
+      vTaskDelay(10 / portTICK_PERIOD_MS);
     }
 
     vTaskDelete(NULL);
