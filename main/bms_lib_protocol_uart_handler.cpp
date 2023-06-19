@@ -96,6 +96,7 @@ namespace sdragos
         {
             if (readLatestIncoming8BytesFrame(SLAVE_ID))
             {
+                vTaskDelay(100 / portTICK_PERIOD_MS); //wait 100ms before processing
                 checkAndProcessLatest8BytesFrame();
 
                 // this resets the buffer, so that we don't process the same frame multiple times
