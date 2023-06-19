@@ -929,14 +929,34 @@ void JkBms::dump_config() {  // NOLINT(google-readability-function-size,readabil
     const uint8_t chargeImmediately = 32;  // 0010 0000 Set when SoC is very low, like 5~9%
     const uint8_t dischargeEnable = 64;    // 0100 0000
     const uint8_t chargeEnable = 128;      // 1000 0000
+    
+    static bool _waitUntilDischargedToLevelBeforeResumeCharge = false;
 
-    if (this->charging_binary_sensor_ && this->temperature_sensor_1_sensor_ < 35 && this ->temperature_sensor_2_sensor_ < 35)
+    if (this->total_voltage_sensor_ >= 
+        ((this->cell_voltage_overvoltage_recovery_sensor_ * this->cell_count_) - 0.1)){
+      _waitUntilDischargedToLevelBeforeResumeCharge = true; 
+      ESP_LOGI(TAG, "Maximum charge voltage reached @OVPR level set in BMS. Stopping charging until battery level drops to 26.5V or restart.");
+    }
+
+    if (this->total_voltage_sensor_ <= 26.5){
+      _waitUntilDischargedToLevelBeforeResumeCharge = false;
+      ESP_LOGI(TAG, "Threshold reached for allowing charging resume @26.5V.");
+    }
+
+    if (_waitUntilDischargedToLevelBeforeResumeCharge){
+      ESP_LOGI(TAG, "Wait until discharged to 26.5V active. Reset adapter to resume charge immediately.");
+    }
+
+    if (this->charging_binary_sensor_ &&
+        (!_waitUntilDischargedToLevelBeforeResumeCharge) && 
+        this->temperature_sensor_1_sensor_ < 35 && 
+        this ->temperature_sensor_2_sensor_ < 35)
       reply[1] |= chargeEnable;
     
     if (this->discharging_binary_sensor_ && this->temperature_sensor_1_sensor_ < 35 && this -> temperature_sensor_2_sensor_ < 35)
       reply[1] |= dischargeEnable;
 
-    if (this->capacity_remaining_sensor_ >= 10 && this->capacity_remaining_sensor_ <=15)
+    if (this->capacity_remaining_sensor_ >= 10 && this->capacity_remaining_sensor_ <= 15)
       reply[1] |= chargeImmediately2;
 
     if (this->capacity_remaining_sensor_ < 10)
@@ -945,7 +965,6 @@ void JkBms::dump_config() {  // NOLINT(google-readability-function-size,readabil
     // no idea when to request full charge
 
     return reply;
-
   };
   uint8_t *JkBms::getRuntimeToEmptySeconds() { 
     return NotImplemented2Bytes();
